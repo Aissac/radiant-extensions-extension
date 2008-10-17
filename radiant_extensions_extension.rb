@@ -7,7 +7,11 @@ class RadiantExtensionsExtension < Radiant::Extension
   url "http://github.com/ihoka/radiant-extensions-extension"
   
   def activate
-    Page.send(:include, TagExtensions)
+    Page.class_eval {
+      include TagExtensions
+    }
+    PageContext.send(:include, PageContextExtensions)
+    Radius::TagBinding.send(:include, TagBindingExtensions)
   end
   
   def deactivate

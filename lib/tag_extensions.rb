@@ -1,39 +1,18 @@
 module TagExtensions
   include Radiant::Taggable
 
-  def self.included(base)
-    PageContext.send(:include, PageContextExtensions)
-    Radius::TagBinding.send(:include, TagBindingExtensions)
-  end
-  
-  module PageContextExtensions
-    def parser
-      page.instance_variable_get(:@parser)
-    end
-  end
-  
-  module TagBindingExtensions
-    def self.included(base)
-      base.send(:include, InstanceMethods)
-      base.send(:alias_method, :attr, :parsed_attributes)
-    end
-    
-    module InstanceMethods
-      def parsed_attributes
-        @parsed_attributes ||= parse_attributes
-      end
-    
-      private
-        def parse_attributes
-          new_attr = {}
-          @attributes.each do |k, v|
-            new_attr[k] = context.parser.parse(v)
-          end
-          new_attr
-        end
-    end
-  end
+  class TagError < StandardError; end
 
+  desc %{
+    Sets a variable specified by the name in @var@ in the page context.
+    When used as a single tag it uses the @value@ attribute.
+    When used as a double tag the part between both tags will be used as the value.
+    
+    *Usage*:
+    <pre><code><r:set var="variable_name" value="variable_value"/></code></pre>
+    or
+    <pre><code><r:set var="variable_name">...variable value...</r:set></code></pre>
+  }
   tag "set" do |tag|
     var = tag.attr['var']
     value = tag.double? ? tag.expand : tag.attr['value']
@@ -41,11 +20,28 @@ module TagExtensions
     ''
   end
   
+  desc %{
+    Gets the value of a previously set value with <code><r:set/></code>.
+    
+    *Usage*:
+    <pre><code><r:get var="variable_name"/></code></pre>
+  }
   tag "get" do |tag|
     var = tag.attr['var']
     tag.globals.send(:"#{var}_var")
   end
 
+  tag_descriptions['if_children'] = RedCloth.new(Util.strip_leading_whitespace(%{
+    Renders the contained elements only if the current contextual page has one or
+    more child pages.  The @status@ attribute limits the status of found child pages
+    to the given status, the default is @"published"@. @status="all"@ includes all
+    non-virtual pages regardless of status.
+    
+    You can specify the minimum required number of children with @min_count@.
+    
+    *Usage:*
+    <pre><code><r:if_children [status="published"] [min_count="0"]>...</r:if_children></code></pre>
+  })).to_html
   tag "if_children" do |tag|
     count = tag.attr['min_count'] && tag.attr['min_count'].to_i || 0
     children = tag.locals.page.children.count(:conditions => children_find_options(tag)[:conditions])
