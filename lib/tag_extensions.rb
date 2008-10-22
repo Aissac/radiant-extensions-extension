@@ -2,6 +2,16 @@ module TagExtensions
   include Radiant::Taggable
 
   class TagError < StandardError; end
+  
+  desc %{
+    Render contents only if <code>description</code> attribute exists.
+    
+    *Usage*:
+    <pre><code><r:meta:if_description>...</r:meta:if_description></code></pre>
+  }
+  tag 'meta:if_description' do |tag|
+    tag.expand unless tag.locals.page.description.blank?
+  end
 
   desc %{
     Sets a variable specified by the name in @var@ in the page context.
