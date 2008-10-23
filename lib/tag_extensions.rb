@@ -65,4 +65,23 @@ module TagExtensions
        tag.expand
     end
   end
+  
+  tag 'cycle' do |tag|
+    raise TagError, "`cycle' tag must contain a `values' attribute." unless tag.attr['values']
+    cycle = (tag.globals.cycle ||= {})
+    cycle_count = (tag.globals.cycle_count ||= {})
+    values = tag.attr['values'].split(",").collect(&:strip)
+    cycle_name = tag.attr['name'] || 'cycle'
+    current_index = (cycle[cycle_name] ||=  0)
+    current_index = 0 if tag.attr['reset'] == 'true'
+    cycle[cycle_name] = (current_index + 1) % values.size
+    cycle_count[cycle_name] = (cycle_count[cycle_name] || 1) + 1 if current_index + 1 == values.size
+    values[current_index]
+  end
+  
+  tag 'cycle_number' do |tag|
+    cycle_count = (tag.globals.cycle_count ||= {})
+    cycle_name = tag.attr['name'] || 'cycle'
+    cycle_count[cycle_name] || 1
+  end
 end
