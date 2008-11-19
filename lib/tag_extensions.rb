@@ -12,6 +12,16 @@ module TagExtensions
   tag 'meta:if_description' do |tag|
     tag.expand unless tag.locals.page.description.blank?
   end
+  
+  desc %{
+    Render contents only unless <code>description</code> attribute exists.
+    
+    *Usage*:
+    <pre><code><r:meta:unless_description>...</r:meta:unless_description></code></pre>
+  }
+  tag 'meta:unless_description' do |tag|
+    tag.expand if tag.locals.page.description.blank?
+  end
 
   desc %{
     Sets a variable specified by the name in @var@ in the page context.
