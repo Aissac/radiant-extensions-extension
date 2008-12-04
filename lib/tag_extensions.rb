@@ -94,4 +94,18 @@ module TagExtensions
     cycle_name = tag.attr['name'] || 'cycle'
     cycle_count[cycle_name] || 1
   end
+  
+  tag "year" do |tag|
+    if tag.double?
+      tag.expand
+    else
+      tag.locals.page.published_at.strftime("%Y")
+    end
+  end
+  
+  tag "year:children" do |tag|
+     year = tag.attr['year'].to_i
+     tag.locals.children = ArchiveFinder.year_finder(parent.children, year)
+     tag.expand
+   end
 end
